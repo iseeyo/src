@@ -397,6 +397,8 @@ function render_gnews(answer, start_offset, n)
                               news_time = child.childNodes[0].childNodes[0].dateTime;
                           else if (child.childNodes[0].childNodes[1].tagName == 'TIME')
                               news_time = child.childNodes[0].childNodes[1].dateTime;
+                          if (child.childNodes[0].childNodes.length == 3 && child.childNodes[0].childNodes[2].tagName == 'TIME')
+                              news_time = child.childNodes[0].childNodes[2].dateTime;
                       }
                       else if (child.childNodes.length >= 2 && child.childNodes[0].tagName == 'DIV')
                       {
@@ -444,6 +446,21 @@ function render_gnews(answer, start_offset, n)
                           if (child.childNodes[1].innerText)
                             source = child.childNodes[1].innerText;
                         }
+                        if (child.childNodes.length == 3) {
+                          if (child.childNodes[0].tagName == 'SOURCE' && child.childNodes[1].tagName == 'SOURCE' && child.childNodes[2].tagName == 'A') {
+                            source_logo = child.childNodes[0].src;
+                            if (child.childNodes[2].innerText)
+                              source = child.childNodes[2].innerText;
+                          }
+                        }
+                        if (child.childNodes.length == 4) {
+                          if (child.childNodes[0].tagName == 'SOURCE' && child.childNodes[1].tagName == 'SOURCE'
+                           && child.childNodes[2].tagName == 'SOURCE' && child.childNodes[3].tagName == 'A') {
+                            source_logo = child.childNodes[0].src;
+                            if (child.childNodes[3].innerText)
+                              source = child.childNodes[3].innerText;
+                          }
+                        }
                       } else if (child.childNodes.length == 1 && child.childNodes[0].tagName == 'A')
                       {
                           subNode = child.childNodes[0];
@@ -471,13 +488,37 @@ function render_gnews(answer, start_offset, n)
                        }
                   }
               }
-
+              try {
+                if (link == null)
+                    link = article.querySelector("a.VDXfz").href;
+              } catch {}
+              try {
+                if (title == null)
+                    title = article.querySelector("h4 a.DY5T1d").innerHTML;
+              } catch {}
+              try {
+                if (image == null)
+                    image = article.querySelector(".QwxBBf").src;
+              } catch {}
+              try {
+                if (source == null)
+                    source = article.querySelector("a.wEwyrc").innerHTML;
+              } catch {}
+              try {
+                if (source_logo == null)
+                    source_logo = article.querySelector(".wsLqz source").src;
+              } catch {}
+              try {
+                if (news_time == null || news_time == 0)
+                    news_time = article.querySelector(".WW6dff").getAttribute("datetime");
+              } catch {}
               if (news_time && parseInt(news_time.substr(news_time.lastIndexOf(":") + 2)) > 1518000000)
                   news_time = parseInt(news_time.substr(news_time.lastIndexOf(":") + 2));
               else
                   news_time = parseInt(Date.parse(news_time) / 1000);
               if (link)
                   link = link.replace('chrome-search://local-ntp/', 'https://news.google.com/');
+            
               if (link && image && title) {
 //                  console.log('Title: ' + title);
                   add_gnews(is_primary, title, news_time, source, source_logo, link, image);
@@ -901,7 +942,7 @@ if (!news_are_already_onscreen) {
       localStorage.lastOffsetRendered = 0;
       render_news_loading();
 }
-      await fetch('https://news.google.com/' + localStorage.newsLocale, { method: 'GET', credentials: 'include' })
+      await fetch('https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFZxYUdjU0FtVnVHZ0pWVXlnQVAB' + localStorage.newsLocale, { method: 'GET', credentials: 'include' })
         .then(function(response) {
           if (response.url.includes("&ceid=")) {
 //            console.log('Gnews: Detected ceid (standard)');
